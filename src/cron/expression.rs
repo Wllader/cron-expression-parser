@@ -29,11 +29,11 @@ impl Expression {
         let mut b = String::new();
 
         writeln!(b, "{{").expect("Writing to a String can't fail");
-        writeln!(b, "  \"minute\": {:?},", self.minute.to_raw_vec()).unwrap();
-        writeln!(b, "  \"hour\": {:?},", self.hour.to_raw_vec()).unwrap();
-        writeln!(b, "  \"dayOfMonth\": {:?},", self.day_of_month.to_raw_vec()).unwrap();
-        writeln!(b, "  \"month\": {:?},", self.month.to_raw_vec()).unwrap();
-        writeln!(b, "  \"dayOfWeek\": {:?}", self.day_of_week.to_raw_vec()).unwrap();
+        writeln!(b, "  \"minute\": {:?},", self.minute.to_vec()).unwrap();
+        writeln!(b, "  \"hour\": {:?},", self.hour.to_vec()).unwrap();
+        writeln!(b, "  \"dayOfMonth\": {:?},", self.day_of_month.to_vec()).unwrap();
+        writeln!(b, "  \"month\": {:?},", self.month.to_vec()).unwrap();
+        writeln!(b, "  \"dayOfWeek\": {:?}", self.day_of_week.to_vec()).unwrap();
         writeln!(b, "}}").unwrap();
 
         b

@@ -1,6 +1,3 @@
-//! Search machinery for `Expression::next_since`: the precomputed field masks
-//! and the calendar jumps the search loop makes. Everything here is internal.
-
 use crate::cron::mask::Mask;
 use crate::cron::{DayOfMonth, DayOfWeek, Hour, Minute, Month, Token};
 use chrono::{Datelike, NaiveDate, NaiveDateTime, TimeDelta, Timelike};

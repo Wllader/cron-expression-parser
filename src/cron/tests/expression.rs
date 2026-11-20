@@ -7,11 +7,11 @@ fn expr(s: &str) -> Result<Expression, cron::Error> {
 #[test]
 fn parses_all_fields() {
     let e = expr("*/15 0 1,15 1-6 1-5").unwrap();
-    assert_eq!(e.minute().to_raw_vec(), [0, 15, 30, 45]);
-    assert_eq!(e.hour().to_raw_vec(), [0]);
-    assert_eq!(e.day_of_month().to_raw_vec(), [1, 15]);
-    assert_eq!(e.month().to_raw_vec(), [1, 2, 3, 4, 5, 6]);
-    assert_eq!(e.day_of_week().to_raw_vec(), [1, 2, 3, 4, 5]);
+    assert_eq!(e.minute().to_vec(), [0, 15, 30, 45]);
+    assert_eq!(e.hour().to_vec(), [0]);
+    assert_eq!(e.day_of_month().to_vec(), [1, 15]);
+    assert_eq!(e.month().to_vec(), [1, 2, 3, 4, 5, 6]);
+    assert_eq!(e.day_of_week().to_vec(), [1, 2, 3, 4, 5]);
 }
 
 #[test]
@@ -68,24 +68,23 @@ fn impossible_dates_are_rejected_when_weekday_is_wildcard() {
 
 #[test]
 fn possible_dates_are_accepted() {
-    assert!(expr("0 0 29 2 *").is_ok()); // leap years
+    assert!(expr("0 0 29 2 *").is_ok());
     assert!(expr("0 0 30 4 *").is_ok());
     assert!(expr("0 0 31 1 *").is_ok());
-    assert!(expr("0 0 31 1,4 *").is_ok()); // one valid pair is enough
-    assert!(expr("0 0 15,31 2 *").is_ok()); // Feb 15 exists
+    assert!(expr("0 0 31 1,4 *").is_ok());
+    assert!(expr("0 0 15,31 2 *").is_ok());
     assert!(expr("0 0 * * *").is_ok());
 }
 
 #[test]
 fn restricted_weekday_allows_impossible_day_of_month() {
-    // cron's OR rule: fires on every Monday even though Feb 31 doesn't exist
     assert!(expr("0 0 31 2 1").is_ok());
 }
 
 /// Straightforward reference implementation that `Expression::has_possible_date` must agree with.
 fn has_possible_date_slow(e: &Expression) -> bool {
-    let months = e.month().to_raw_vec();
-    let days = e.day_of_month().to_raw_vec();
+    let months = e.month().to_vec();
+    let days = e.day_of_month().to_vec();
     months.iter().any(|&m| days.iter().any(|&d| d <= Month::raw_max_days(m)))
 }
 

@@ -11,7 +11,7 @@ mod parsing {
     fn wildcard() {
         let t = tok::<Minute>("*").unwrap();
         assert!(t.is_wildcard());
-        assert_eq!(t.to_raw_vec(), (0..=59).collect::<Vec<u8>>());
+        assert_eq!(t.to_vec(), (0..=59).collect::<Vec<u8>>());
     }
 
     #[test]
@@ -137,8 +137,8 @@ mod operations {
         v.map(|m| m.get())
     }
 
-    /// The members of a mask, smallest first. `Mask<T>` can't be compared with `==`
-    /// because its derived `PartialEq` requires `T: PartialEq`, which the time elements lack.
+    /// The members of a mask, smallest first. `Mask<T>` doesn't implement `PartialEq`,
+    /// so masks are compared through their members.
     fn members<T: TimeElement>(mask: Mask<T>) -> Vec<u8> {
         (0..64).filter(|&v| mask.contains(v)).collect()
     }
@@ -168,7 +168,7 @@ mod operations {
     #[test]
     fn first_is_smallest_member() {
         assert_eq!(raw_opt(tok::<Minute>("7,37").unwrap().mask().first()), Some(7));
-        assert_eq!(raw_opt(tok::<Minute>("0,30").unwrap().mask().first()), Some(0)); // next_in is inclusive
+        assert_eq!(raw_opt(tok::<Minute>("0,30").unwrap().mask().first()), Some(0));
         assert_eq!(raw_opt(bits(0).first()), None);
     }
 
@@ -188,23 +188,6 @@ mod operations {
         let months = |m: &str| tok::<Month>(m).unwrap().mask();
         assert_eq!(members(Month::MASK_31), members(months("1,3,5,7,8,10,12")));
         assert_eq!(members(Month::MASK_30), members(months("4,6,9,11")));
-    }
-
-    #[test]
-    fn max() {
-        assert_eq!(tok::<Minute>("5").unwrap().max(), 5);
-        assert_eq!(tok::<Minute>("*").unwrap().max(), 59);
-        assert_eq!(tok::<Minute>("1-10").unwrap().max(), 10);
-        assert_eq!(tok::<Minute>("3,40,7").unwrap().max(), 40);
-    }
-
-    #[test]
-    fn to_vec_matches_to_raw_vec() {
-        for s in ["5", "*", "1-5", "*/20", "1,5,10-12"] {
-            let t = tok::<Minute>(s).unwrap();
-            let typed: Vec<u8> = t.to_vec().unwrap().into_iter().map(|m| m.get()).collect();
-            assert_eq!(typed, t.to_raw_vec(), "mismatch for {s:?}");
-        }
     }
 
     #[test]

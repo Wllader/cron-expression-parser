@@ -29,35 +29,11 @@ pub enum Token<T: TimeElement> {
 }
 
 impl<T: TimeElement> Token<T> {
-    pub fn max(&self) -> u8 {
-        match self {
-            Token::Literal(v) => v.get(),
-            Token::Wildcard => T::MAX,
-            Token::Range(r) => r.end(),
-            Token::List(items) => items.iter().max_by_key(|t| t.max()).unwrap().max(),
-        }
-    }
-
     pub fn is_wildcard(&self) -> bool {
         matches!(self, Token::Wildcard)
     }
 
-    pub fn to_vec(&self) -> Result<Vec<T>, cron::Error> {
-        match self {
-            Token::Literal(v) => Ok(vec![*v]),
-            Token::Wildcard => (T::MIN..=T::MAX).map(|n| T::try_from(n)).collect(),
-            Token::Range(r) => r.values().map(|n| T::try_from(n)).collect(),
-            Token::List(items) => {
-                let mut out = Vec::new();
-                for t in items {
-                    out.extend(t.to_vec()?);
-                }
-                Ok(out)
-            }
-        }
-    }
-
-    pub fn to_raw_vec(&self) -> Vec<u8> {
+    pub fn to_vec(&self) -> Vec<u8> {
         match self {
             Token::Literal(v) => vec![v.get()],
             Token::Wildcard => (T::MIN..=T::MAX).collect(),
@@ -65,7 +41,7 @@ impl<T: TimeElement> Token<T> {
             Token::List(items) => {
                 let mut out = Vec::new();
                 for t in items {
-                    out.extend(t.to_raw_vec());
+                    out.extend(t.to_vec());
                 }
                 out
             }
@@ -74,7 +50,7 @@ impl<T: TimeElement> Token<T> {
 
     pub(crate) fn mask(&self) -> Mask<T> {
         const { assert!(T::MAX < 64, "Masking is bound by bit pattern of u64") };
-        Mask::from_bits(self.to_raw_vec().iter().fold(0, |m, &v| m | (1u64 << v)))
+        Mask::from_bits(self.to_vec().iter().fold(0, |m, &v| m | (1u64 << v)))
     }
 }
 

@@ -2,7 +2,7 @@ use crate::cron::TimeElement;
 use std::marker::PhantomData;
 
 /// A set of values of one time field, stored as bits of a `u64` (bit `n` set means value `n`).
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug)]
 pub(crate) struct Mask<T: TimeElement>(u64, PhantomData<T>);
 
 impl<T: TimeElement> Mask<T> {

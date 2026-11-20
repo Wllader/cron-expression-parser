@@ -1,6 +1,6 @@
 use crate::cron;
 use crate::cron::mask::Mask;
-use crate::ranged_u8;
+use crate::ranged::ranged_u8;
 use std::fmt::{Display, Debug};
 
 ranged_u8!(Minute = 0..=59);

@@ -59,22 +59,18 @@ mod next_since {
 
     #[test]
     fn weekday_zero_is_sunday() {
-        // 2025-01-01 is a Wednesday
         assert_eq!(next("0 0 * * 0", dt(2025, 1, 1, 12, 0)), dt(2025, 1, 5, 0, 0));
     }
 
     #[test]
     fn restricted_weekday_with_wildcard_day_must_match_weekday() {
-        // 2025-02-01 is a Saturday
         assert_eq!(next("0 12 * * 1-5", dt(2025, 2, 1, 0, 0)), dt(2025, 2, 3, 12, 0));
     }
 
     #[test]
     fn both_day_fields_restricted_use_or() {
-        // 2025-01-13 is a Monday, 2025-01-17 a Friday
         assert_eq!(next("0 0 13 * 5", dt(2025, 1, 11, 0, 0)), dt(2025, 1, 13, 0, 0));
         assert_eq!(next("0 0 13 * 5", dt(2025, 1, 13, 1, 0)), dt(2025, 1, 17, 0, 0));
-        // Feb 31 never exists, so only the Mondays fire; 2025-02-03 is a Monday
         assert_eq!(next("0 0 31 2 1", dt(2025, 2, 1, 0, 0)), dt(2025, 2, 3, 0, 0));
     }
 }
@@ -121,7 +117,6 @@ mod upcoming {
 
     #[test]
     fn every_value_is_a_match() {
-        // each item must be exactly what next_since returns from the previous one
         let e = expr("30 9 * * 1-5");
         let mut prev = dt(2025, 1, 1, 0, 0);
         for t in e.upcoming_since(prev).take(20) {

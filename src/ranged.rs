@@ -1,4 +1,3 @@
-#[macro_export]
 macro_rules! ranged {
     ($name:ident : $type:ty = $min:literal ..= $max:literal) => {
         const _: () = assert!($min <= $max);
@@ -23,12 +22,6 @@ macro_rules! ranged {
             }
         }
 
-        impl Default for $name {
-            fn default() -> Self {
-                Self::new(Self::MIN)
-            }
-        }
-
         impl std::fmt::Debug for $name {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 f.debug_tuple(stringify!($name))
@@ -42,16 +35,12 @@ macro_rules! ranged {
                 std::fmt::Display::fmt(&self.get(), f)
             }
         }
-
-        impl From<$name> for $type {
-            fn from(val: $name) -> Self {
-                val.get()
-            }
-        }
     };
 }
 
-#[macro_export]
 macro_rules! ranged_u8 {
-    ($name:ident = $min:literal ..= $max:literal) => { $crate::ranged!($name:u8 = $min..=$max); };
+    ($name:ident = $min:literal ..= $max:literal) => { $crate::ranged::ranged!($name:u8 = $min..=$max); };
 }
+
+pub(crate) use ranged;
+pub(crate) use ranged_u8;
