@@ -1,6 +1,8 @@
 #[macro_export]
 macro_rules! ranged {
     ($name:ident : $type:ty = $min:literal ..= $max:literal) => {
+        const _: () = assert!($min <= $max);
+
         #[derive(Clone, Copy)]
         #[repr(transparent)]
         pub struct $name(pattern_type!($type is $min..=$max));
@@ -37,7 +39,7 @@ macro_rules! ranged {
 
         impl std::fmt::Display for $name {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                self.get().fmt(f)
+                std::fmt::Display::fmt(&self.get(), f)
             }
         }
 
