@@ -3,5 +3,4 @@
 
 pub mod cron;
 
-#[macro_use]
 mod ranged;

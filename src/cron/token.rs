@@ -1,5 +1,6 @@
 use crate::cron;
 use crate::cron::TimeElement;
+use crate::cron::mask::Mask;
 use std::{num::NonZeroU8, str::FromStr};
 use std::fmt::{Display, Debug};
 
@@ -71,14 +72,9 @@ impl<T: TimeElement> Token<T> {
         }
     }
 
-    pub fn mask(&self) -> u64 {
+    pub(crate) fn mask(&self) -> Mask<T> {
         const { assert!(T::MAX < 64, "Masking is bound by bit pattern of u64") };
-        self.to_raw_vec().iter().fold(0, |m, &v| m | (1u64 << v))
-    }
-
-    pub fn next_in(mask: u64, from: u8) -> Option<u8> {
-        let shifted = mask >> from;
-        (shifted != 0).then(|| from + shifted.trailing_zeros() as u8)
+        Mask::from_bits(self.to_raw_vec().iter().fold(0, |m, &v| m | (1u64 << v)))
     }
 }
 

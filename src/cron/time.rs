@@ -1,4 +1,5 @@
 use crate::cron;
+use crate::cron::mask::Mask;
 use crate::ranged_u8;
 use std::fmt::{Display, Debug};
 
@@ -28,6 +29,12 @@ macro_rules! impl_time_element_for {
             }
         }
 
+        impl From<$type> for u32 {
+            fn from(v: $type) -> u32 {
+                v.get().into()
+            }
+        }
+
         impl TimeElement for $type {
             const MIN: u8 = $type::MIN;
             const MAX: u8 = $type::MAX;
@@ -53,17 +60,18 @@ impl Month {
         31, 31, 30, 31, 30, 31,
     ];
 
-    pub const MASK_31: u64 = Self::months_with(31);
-    pub const MASK_30: u64 = Self::months_with(30);
+    pub(crate) const MASK_31: Mask<Month> = Self::months_with(31);
+    pub(crate) const MASK_30: Mask<Month> = Self::months_with(30);
 
-    const fn months_with(days: u8) -> u64 {
+    const fn months_with(days: u8) -> Mask<Month> {
         let mut m = 1;
         let mut mask = 0;
         while m <= 12 {
             if Month::raw_max_days(m) == days { mask |= 1 << m; }
             m += 1;
         }
-        mask
+
+        Mask::from_bits(mask)
     }
 
     pub const fn max_days(&self) -> u8 {
