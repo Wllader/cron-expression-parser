@@ -10,7 +10,7 @@ pub(super) struct Schedule {
     pub weekday: Mask<DayOfWeek>,
     pub hour: Mask<Hour>,
     pub minute: Mask<Minute>,
-    either_day: bool,
+    both_days_specified: bool,
 }
 
 impl Schedule {
@@ -27,7 +27,7 @@ impl Schedule {
             weekday: day_of_week.mask(),
             hour: hour.mask(),
             minute: minute.mask(),
-            either_day: !day_of_month.is_wildcard() && !day_of_week.is_wildcard(),
+            both_days_specified: !day_of_month.is_wildcard() && !day_of_week.is_wildcard(),
         }
     }
 
@@ -36,7 +36,7 @@ impl Schedule {
         let md = self.monthday.contains(t.day() as u8);
         let wd = self.weekday.contains(t.weekday().num_days_from_sunday() as u8);
 
-        if self.either_day { md || wd } else { md && wd }
+        if self.both_days_specified { md || wd } else { md && wd }
     }
 }
 
