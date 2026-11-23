@@ -1,10 +1,24 @@
 # Design choices
 
-## Range-checked field types (`pattern_types`, nightly)
+## Range-checked field types (const generics)
 
-I wanted to experiment with the pattern types, which are close to how compile-time checked newtypes over primitive types work, but they also enable the compiler to mark the unused bit patterns as niches.
+All five field types are instances of a single generic newtype, `RangedU8<Tag, MIN, MAX>`, where the bounds are const generic parameters. `Minute`, `Hour`, `DayOfMonth`, `Month` and `DayOfWeek` are type aliases, generated together with their tags by a small macro.
 
-Their usage here is not structural, and conversion to basic newtypes over `u8` would be not only a mechanical but also a trivial change.
+The field is private, so values can only be created through two range-checked constructors:
+- `TryFrom<u8>` - the fallible one, returning `Err(OutOfRange)`, for input we don't control (parsing),
+- `new` - a `const fn` that panics on an out-of-range value, for values known to be valid (constants, tests). In a `const` context, an invalid value becomes a compile error.
+
+The check in `new` is a plain `assert!`, not a `debug_assert!` - the rest of the code (masks, month lengths, chrono conversions) relies on the range, so it has to hold in release builds too.
+
+Everything shared - `new`, `get`, `Debug`, `Display`, `TryFrom`, `From<_> for u32` and `TimeElement` - is written once, generically. Field-specific behaviour goes into an impl on one concrete instantiation, e.g. `impl Month { ... }` with the month lengths.
+
+The bounds are `u8` specifically, because on stable Rust the type of a const parameter can't depend on another generic parameter. Every cron field fits into a `u8`, so this costs nothing.
+
+The `Tag` parameter isn't strictly needed today - all five ranges differ, so the bounds alone would already make the types distinct. It is there for two reasons:
+- it gives each type its name, so `Debug` prints `Minute(7)` rather than a generic name,
+- it keeps fields with the same range apart - a seconds field (`0..=59`) would otherwise be the very same type as `Minute`.
+
+Originally, the field types were built on the nightly-only `pattern_types` feature, as an experiment. They let the compiler use the unused values as niches (making `Option<Minute>` 1 byte instead of 2), but the code never stores such values, so the benefit was unused. Moving to stable lost nothing the code relied on, and removed all `unsafe` code.
 
 ## Token representation and normalization
 

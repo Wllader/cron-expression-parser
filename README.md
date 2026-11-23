@@ -19,10 +19,9 @@ For the reasoning behind the implementation, see [DESIGN.md](DESIGN.md).
 ## Requirements
 
 - [rustup](https://rustup.rs/)
-- A **nightly** toolchain. The crate uses the unstable `pattern_types` feature.
-  You don't need to switch toolchains by hand: `rust-toolchain.toml` pins the
-  project to `nightly`, and rustup installs and selects it automatically the
-  first time you run `cargo` in this directory.
+- A **stable** toolchain, Rust 1.85 or newer (the crate uses edition 2024).
+  `rust-toolchain.toml` pins the project to `stable`, so rustup selects it
+  automatically the first time you run `cargo` in this directory.
 
 ## Build
 
