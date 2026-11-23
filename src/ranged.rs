@@ -4,21 +4,21 @@ macro_rules! ranged {
 
         #[derive(Clone, Copy)]
         #[repr(transparent)]
-        pub struct $name(pattern_type!($type is $min..=$max));
+        pub struct $name($type);
 
         impl $name {
             pub const MIN: $type = $min;
             pub const MAX: $type = $max;
 
+            // # Panics
+            // If `val` is outside `MIN..=MAX`. Use `TryFrom` for unchecked input.
             pub const fn new(val: $type) -> Self {
                 assert!(val >= Self::MIN && val <= Self::MAX, "Value out of range");
-                // SAFETY: Bounds were verified above.
-                unsafe { Self(std::mem::transmute::<$type, pattern_type!($type is $min..=$max)>(val)) }
+                Self(val)
             }
 
             pub const fn get(self) -> $type {
-                // SAFETY: Every inhabitant of `pattern_type!($type is $min..=$max)` is a valid `$type`.
-                unsafe { std::mem::transmute(self.0) }
+                self.0
             }
         }
 

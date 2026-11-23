@@ -1,10 +1,12 @@
 # Design choices
 
-## Range-checked field types (`pattern_types`, nightly)
+## Range-checked field newtypes
 
-I wanted to experiment with the pattern types, which are close to how compile-time checked newtypes over primitive types work, but they also enable the compiler to mark the unused bit patterns as niches.
+Basic newtypes created by a macro to reduce boilerplate.
 
-Their usage here is not structural, and conversion to basic newtypes over `u8` would be not only a mechanical but also a trivial change.
+The field is private, so values can only be created through two range-checked constructors:
+- `TryFrom<u8>` - the fallible one, returning `Err(OutOfRange)`, for input we don't control (parsing),
+- `new` - a `const fn` that panics on an out-of-range value, for values known to be valid (constants, tests). In a `const` context, an invalid value becomes a compile error.
 
 ## Token representation and normalization
 
