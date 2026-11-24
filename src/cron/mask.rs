@@ -19,4 +19,9 @@ impl<T: TimeElement> Mask<T> {
 
     pub const fn intersects(self, other: Mask<T>) -> bool { self.0 & other.0 != 0 }
     pub const fn is_empty(self) -> bool { self.0 == 0 }
+    pub const fn raw_bits(&self) -> u64 { self.0 }
+
+    pub fn to_vec(self) -> Vec<u8> {
+        (T::MIN..=T::MAX).filter(|i| self.contains(*i)).collect()
+    }
 }

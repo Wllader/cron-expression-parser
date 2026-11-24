@@ -6,7 +6,7 @@ fn tok<T: TimeElement>(s: &str) -> Result<Token<T>, cron::Error> {
 }
 
 fn raw<T: TimeElement>(s: &str) -> Vec<u8> {
-    tok::<T>(s).unwrap().to_vec()
+    tok::<T>(s).unwrap().mask().to_vec()
 }
 
 mod time;

@@ -11,7 +11,7 @@ mod parsing {
     fn wildcard() {
         let t = tok::<Minute>("*").unwrap();
         assert!(t.is_wildcard());
-        assert_eq!(t.to_vec(), (0..=59).collect::<Vec<u8>>());
+        assert_eq!(t.mask().to_vec(), (0..=59).collect::<Vec<u8>>());
     }
 
     #[test]
@@ -70,6 +70,12 @@ mod parsing {
     fn list() {
         assert_eq!(raw::<Minute>("1,5,10-12"), [1, 5, 10, 11, 12]);
         assert!(matches!(tok::<Minute>("1,5").unwrap(), Token::List(_)));
+    }
+
+    #[test]
+    fn list_values_are_sorted_and_deduplicated() {
+        assert_eq!(raw::<Minute>("30,5,5"), [5, 30]);
+        assert_eq!(raw::<Minute>("40-45,1,42"), [1, 40, 41, 42, 43, 44, 45]);
     }
 
     #[test]
