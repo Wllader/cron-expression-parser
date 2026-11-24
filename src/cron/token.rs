@@ -33,25 +33,24 @@ impl<T: TimeElement> Token<T> {
         matches!(self, Token::Wildcard)
     }
 
-    pub fn to_vec(&self) -> Vec<u8> {
-        match self {
-            Token::Literal(v) => vec![v.get()],
-            Token::Wildcard => (T::MIN..=T::MAX).collect(),
-            Token::Range(r) => r.values().collect(),
-            Token::List(items) => {
-                let mut out = Vec::new();
-                for t in items {
-                    out.extend(t.to_vec());
-                }
-                out
-            }
-        }
-    }
-
     pub(crate) fn mask(&self) -> Mask<T> {
         const { assert!(T::MAX < 64, "Masking is bound by bit pattern of u64") };
-        Mask::from_bits(self.to_vec().iter().fold(0, |m, &v| m | (1u64 << v)))
+        let val = match self {
+            Token::Literal(v) => 1u64 << v.get(),
+            Token::Wildcard => between(T::MIN, T::MAX),
+            Token::Range(r) if r.step() == 1 => between(r.start(), r.end()),
+            Token::Range(r) => r.values().fold(0, |m, v| m | 1u64 << v),
+            Token::List(tokens) =>
+                tokens.iter().fold(0, |m, t| m | t.mask().raw_bits())
+        };
+
+        Mask::from_bits(val)
     }
+}
+
+fn between(start:u8, end:u8) -> u64 {
+    assert!(start <= end && end < 64);
+    (u64::MAX >> (63 - end)) & (u64::MAX << start)
 }
 
 impl<T: TimeElement> Display for Token<T> {
@@ -147,7 +146,12 @@ fn parse_num<T: TimeElement>(s: &str) -> Result<T, cron::Error> {
 
 fn parse_range<T: TimeElement>(s: &str) -> Result<Range<T>, cron::Error> {
     let (base, step) = match s.split_once('/') {
-        Some((b, st)) => (b, st.parse::<NonZeroU8>().map_err(|_| cron::Error::InvalidStep)?),
+        Some((b, st)) => {
+            if st.is_empty() || !st.chars().all(|ch| ch.is_ascii_digit()) {
+                return Err(cron::Error::InvalidStep)
+            }
+            (b, st.parse::<NonZeroU8>().map_err(|_| cron::Error::InvalidStep)?)
+        }
         None => (s, NonZeroU8::MIN),
     };
 
