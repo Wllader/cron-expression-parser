@@ -7,11 +7,11 @@ fn expr(s: &str) -> Result<Expression, cron::Error> {
 #[test]
 fn parses_all_fields() {
     let e = expr("*/15 0 1,15 1-6 1-5").unwrap();
-    assert_eq!(e.minute().to_vec(), [0, 15, 30, 45]);
-    assert_eq!(e.hour().to_vec(), [0]);
-    assert_eq!(e.day_of_month().to_vec(), [1, 15]);
-    assert_eq!(e.month().to_vec(), [1, 2, 3, 4, 5, 6]);
-    assert_eq!(e.day_of_week().to_vec(), [1, 2, 3, 4, 5]);
+    assert_eq!(e.minute().mask().to_vec(), [0, 15, 30, 45]);
+    assert_eq!(e.hour().mask().to_vec(), [0]);
+    assert_eq!(e.day_of_month().mask().to_vec(), [1, 15]);
+    assert_eq!(e.month().mask().to_vec(), [1, 2, 3, 4, 5, 6]);
+    assert_eq!(e.day_of_week().mask().to_vec(), [1, 2, 3, 4, 5]);
 }
 
 #[test]
@@ -83,8 +83,8 @@ fn restricted_weekday_allows_impossible_day_of_month() {
 
 /// Straightforward reference implementation that `Expression::has_possible_date` must agree with.
 fn has_possible_date_slow(e: &Expression) -> bool {
-    let months = e.month().to_vec();
-    let days = e.day_of_month().to_vec();
+    let months = e.month().mask().to_vec();
+    let days = e.day_of_month().mask().to_vec();
     months.iter().any(|&m| days.iter().any(|&d| d <= Month::raw_max_days(m)))
 }
 

@@ -26,14 +26,15 @@ impl Expression {
     pub fn day_of_week(&self) -> cron::Token<DayOfWeek> { self.day_of_week.clone() }
 
     pub fn json_val_sets(&self) -> String {
+        let sch = &self.schedule;
         let mut b = String::new();
 
         writeln!(b, "{{").expect("Writing to a String can't fail");
-        writeln!(b, "  \"minute\": {:?},", self.minute.to_vec()).unwrap();
-        writeln!(b, "  \"hour\": {:?},", self.hour.to_vec()).unwrap();
-        writeln!(b, "  \"dayOfMonth\": {:?},", self.day_of_month.to_vec()).unwrap();
-        writeln!(b, "  \"month\": {:?},", self.month.to_vec()).unwrap();
-        writeln!(b, "  \"dayOfWeek\": {:?}", self.day_of_week.to_vec()).unwrap();
+        writeln!(b, "  \"minute\": {:?},", sch.minute.to_vec()).unwrap();
+        writeln!(b, "  \"hour\": {:?},", sch.hour.to_vec()).unwrap();
+        writeln!(b, "  \"dayOfMonth\": {:?},", sch.monthday.to_vec()).unwrap();
+        writeln!(b, "  \"month\": {:?},", sch.month.to_vec()).unwrap();
+        writeln!(b, "  \"dayOfWeek\": {:?}", sch.weekday.to_vec()).unwrap();
         writeln!(b, "}}").unwrap();
 
         b
@@ -41,6 +42,7 @@ impl Expression {
 
     const SEARCH_GAP_YEARS: u8 = 8;
     pub fn next_since(&self, since: DateTime) -> Option<DateTime> {
+        if since == DateTime::MAX_UTC { return None; }
         let sch = &self.schedule;
 
         let limit = since.year() + Self::SEARCH_GAP_YEARS as i32;
