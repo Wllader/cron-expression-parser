@@ -42,7 +42,6 @@ impl Expression {
 
     const SEARCH_GAP_YEARS: u8 = 8;
     pub fn next_since(&self, since: DateTime) -> Option<DateTime> {
-        if since == DateTime::MAX_UTC { return None; }
         let sch = &self.schedule;
 
         let limit = since.year() + Self::SEARCH_GAP_YEARS as i32;
