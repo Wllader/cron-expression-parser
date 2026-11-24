@@ -59,10 +59,10 @@ impl Cursor for NaiveDateTime {
         self.date().succ_opt()?.and_hms_opt(0, 0, 0)
     }
     fn next_hour(self) -> Option<Self> {
-        Some(self.date().and_hms_opt(self.hour(), 0, 0)? + TimeDelta::hours(1))
+        self.date().and_hms_opt(self.hour(), 0, 0)?.checked_add_signed(TimeDelta::hours(1))
     }
     fn next_minute(self) -> Option<Self> {
-        Some(self.with_second(0)?.with_nanosecond(0)? + TimeDelta::minutes(1))
+        self.with_second(0)?.with_nanosecond(0)?.checked_add_signed(TimeDelta::minutes(1))
     }
 
     fn month_start(self, m: Month) -> Option<Self> {
