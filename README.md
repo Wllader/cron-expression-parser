@@ -4,12 +4,21 @@ A Rust library that parses standard five-field cron expressions
 (`minute hour day-of-month month day-of-week`) and computes when they fire next.
 
 ```rust
+use chrono::{TimeZone, Utc};
 use cron_exp_parser::cron::Expression;
 
 let expr: Expression = "*/5 * * * *".parse()?;
 
-println!("{}", expr.next().unwrap());        // next match after now (UTC)
+// Relative to now (UTC)
+println!("{}", expr.next().unwrap());        // next match after now
 for t in expr.upcoming().take(5) {           // the next five matches
+    println!("{t}");
+}
+
+// Relative to a given moment
+let since = Utc.with_ymd_and_hms(2025, 1, 1, 12, 0, 0).unwrap();
+println!("{}", expr.next_since(since).unwrap());   // 2025-01-01 12:05:00 UTC
+for t in expr.upcoming_since(since).take(3) {      // 12:05, 12:10, 12:15
     println!("{t}");
 }
 ```
