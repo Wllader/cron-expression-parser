@@ -86,3 +86,23 @@ The `Expression` part is also where possible errors are short-circuited and dele
 As described above, the errors that can occur while parsing expressions are all encapsulated by the `cron::Error` enum. It implements `Display` and `std::error::Error`, so it works with `?` in functions returning `Box<dyn Error>`, and with crates like `anyhow`.
 
 Searching for the next match returns `Option` instead. A `None` can come from two places: the 8-year limit running out, or a date past the maximum representable year in `NaiveDateTime`. Since impossible dates are rejected at parse time and 8 years is always enough for a valid date, the first can't happen for an accepted expression. That leaves only the end of representable time, so in practice `next_since` always returns `Some`.
+
+## Public API
+
+I aimed for an API that feels like the standard library, so that using it needs no reading of documentation:
+
+```rust
+let expr: Expression = "0 9-17/2 * * 1-5".parse()?;
+let next = expr.next_since(since);
+let week: Vec<_> = expr.upcoming_since(since).take_while(|t| *t < since + TimeDelta::weeks(1)).collect();
+```
+
+Parsing goes through `FromStr` rather than a free `parse` function. That is the idiomatic way to turn a string into a value in Rust: it works with `str::parse` and type inference, with `?` (thanks to `cron::Error` implementing `std::error::Error`), and with any code that is generic over `FromStr`. `Display` goes the other way and prints the normalized form, so an expression round-trips through a string.
+
+Times are `chrono::DateTime<Utc>` instead of raw Unix timestamps. The type itself says that the value is in UTC and has no unit to get wrong (seconds vs. milliseconds), and it formats nicely when printed. A caller who works with timestamps is one call away in each direction - `DateTime::from_timestamp(ts, 0)` and `.timestamp()`.
+
+Every operation comes in two flavours:
+- `next` and `upcoming` start from the current time, for the common case,
+- `next_since` and `upcoming_since` start from a given moment, which makes them deterministic - all the tests use these.
+
+`Upcoming` is a lazy iterator over consecutive matches. It borrows the expression instead of cloning it, computes each match only when asked, and composes with the usual iterator adapters (`take`, `take_while`, `filter`, ...). It also implements `FusedIterator`, and `Clone`, so an iterator can be forked at any point.
